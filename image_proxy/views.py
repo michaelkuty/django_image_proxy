@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.views import generic
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
-
+from django.core.files.storage import FileSystemStorage, get_storage_class
 from django.views.generic import View
 from django.conf import settings
 
@@ -27,13 +27,37 @@ class ThumbnailMixin(object):
         return urljoin(self.base_url, self.kwargs["id"])
 
     @property
+    def name(self):
+        return self.kwargs["id"].split("/")[-1]
+
+    @property
+    def full_name(self):
+        return "%s_%s" % (self.final_size_string, self.name)
+
+    @property
+    def storage(self):
+        return get_storage_class()()
+
+    @property
     def image(self):
         r = requests.get(self.remote_path)
 
-        img_temp = NamedTemporaryFile(delete=True)
-        img_temp.write(r.content)
-        img_temp.flush()
-        return Image.open(img_temp.name)
+        if self.storage.exists(self.full_name):
+            im = Image.open(self.storage.path(self.full_name))
+            im = processors.save_image(im)
+        else:
+            img_temp = NamedTemporaryFile(delete=True)
+            img_temp.write(r.content)
+            img_temp.flush()
+            im = Image.open(img_temp.name)
+            im = processors.scale_and_crop(
+                im,
+                self.final_size,
+                self.method)
+            im = processors.colorspace(im)
+            im = processors.save_image(im)
+            self.storage.save(self.full_name, im)
+        return im
 
     @property
     def content_type(self):
@@ -52,6 +76,10 @@ class ThumbnailMixin(object):
         return context
 
     @property
+    def final_size_string(self):
+        return "x".join(self.final_size)
+
+    @property
     def final_size(self):
         try:
             size = self.kwargs["size"]
@@ -67,20 +95,12 @@ class ThumbnailMixin(object):
             method = "crop" 
         return method
 
-    def get_image(self):
-        im = processors.scale_and_crop(
-            self.image,
-            self.final_size,
-            self.method)
-        im = processors.colorspace(im)
-        im = processors.save_image(im)
-        return im
 
 class ThumbnailView(View, ThumbnailMixin):
 
     def get(self, request, *args, **kwargs):
 
-        response = HttpResponse(self.get_image(), content_type=self.content_type)
+        response = HttpResponse(self.image, content_type=self.content_type)
 
         return response
 

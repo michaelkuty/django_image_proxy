@@ -3,8 +3,9 @@
 Django Image Proxy
 ==================
 
-Support Openstack Horizon Dashboard, with this lib is available simple modal preview.
+Simple django app which provide images from remote hosts. Supports custom sizes and simple caching for less API calls.
 
+Aims to simplicity and compatibility with Openstack Horizon Dashboard, where is main place for usage.
 
 Installation
 ------------
@@ -102,10 +103,6 @@ Override
 
             return response
 
-TODO
-----
-
-* cache thumbnails
 
 Contribution
 ------------
