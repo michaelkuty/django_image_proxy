@@ -41,6 +41,10 @@ Usage
     <img src="{% url 'proxy_image' 'my_image_name' '100x100' %}"/>
     <img src="{% url 'proxy_image' 'my_image_id' '100x100' 'scale' %}"/>
 
+    or 
+    {% load thumnail %}
+    {% thumbnail product.image '400x400' 'crop' %}
+
 Custom size and method
 
 .. code-block:: python
@@ -79,8 +83,8 @@ Image in modal dialog.
 
 .. code-block:: python
     
-    <a href="{% url 'proxy_image' 'my_image_id' %}" class="ajax-modal">
-        <img src="{% url 'proxy_image_preview' 'my_image_id' %}"/>
+    <a href="{% url 'proxy_image_preview' image %}" class="ajax-modal">
+      <img src="{% thumbnail product.image '100x100' 'crop' %}" class="center-block" width="100px" />
     </a>
 
 Override
