@@ -60,7 +60,7 @@ note: this url is for another django located on the address
     
     for image in images:
 
-        print reverse("image_proxy", args=[image])
+        print reverse("proxy_image", args=[image])
         /images/image/media/image.jpg # this url download image from original url and returns it !        
 
 
