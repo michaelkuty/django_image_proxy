@@ -1,0 +1,98 @@
+
+==================
+Django Image Proxy
+==================
+
+Support Openstack Horizon Dashboard, with this lib is available simple modal preview.
+
+
+Installation
+------------
+
+.. code-block:: bash
+
+    pip install django_image_proxy
+
+local_settings.py
+
+.. code-block:: python
+
+    INSTALLED_APPS += ('image_proxy',)
+
+    IMAGE_PROXY_URL = 'localhost:9753/images'
+
+urls.py
+
+.. code-block:: python
+
+    urlpatterns = patterns('',
+        ...
+        url(r'^images/', include('image_proxy.urls')),
+        ...
+    )
+
+Usage
+-----
+
+.. code-block:: html
+    
+    <img src="{% url 'proxy_image' '/media/anotherdjangoapp.png' %}"/>
+    <img src="{% url 'proxy_image_preview' '/media/anotherdjangoapp.png' %}"/>
+    <img src="{% url 'proxy_image' 'my_image_name' %}"/>
+    <img src="{% url 'proxy_image' 'my_image_id' %}"/>
+
+For easily using Django Rest Framework should do this
+
+
+local_settings.py
+
+.. code-block:: python
+
+    IMAGE_PROXY_URL = 'localhost:9753'
+
+note: this url is for another django located on the address
+
+.. code-block:: python
+
+    # simple using Django Rest Framework Serializer
+    # for image paths return something like this
+    images = ["/media/image.jpg", "/media/image01.jpg"]
+    
+    for image in images:
+
+        print reverse("image_proxy", args=[image])
+        /images/image/media/image.jpg # this url download image from original url and returns it !        
+
+
+Usage with Openstack Horizon Dashboard
+--------------------------------------
+
+Requires installed horizon.
+
+.. code-block:: python
+    
+    <a href="{% url 'proxy_image' 'my_image_id' %}" class="ajax-modal">
+        <img src="{% url 'proxy_image_preview' 'my_image_id' %}"/>
+    </a>
+
+Override
+--------
+
+.. code-block:: python
+
+    from image_proxy.views import ThumbnailView
+
+    class MyThumbnailView(ThumbnailView)
+
+        def get(self, request, *args, **kwargs):
+
+            response = http.HttpResponse(self.image, content_type=self.content_type)
+
+            return response
+
+Contribution
+------------
+
+* Check for open issues or open a fresh issue to start a discussion around a feature idea or a bug.
+* Fork https://github.com/michaelkuty/django_image_proxy on GitHub to start making your changes to the **master** branch.
+* Send a pull request
