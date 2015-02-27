@@ -12,6 +12,7 @@ Supports
 
 * Django 1.7 and older
 * Openstack Horizon Dashboard Icehouse, Juno +
+* Pillow 2.3.0
 
 Installation
 ------------
