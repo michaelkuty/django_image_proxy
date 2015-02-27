@@ -38,11 +38,17 @@ Usage
     
     <img src="{% url 'proxy_image' '/media/anotherdjangoapp.png' %}"/>
     <img src="{% url 'proxy_image_preview' '/media/anotherdjangoapp.png' %}"/>
-    <img src="{% url 'proxy_image' 'my_image_name' %}"/>
-    <img src="{% url 'proxy_image' 'my_image_id' %}"/>
+    <img src="{% url 'proxy_image' 'my_image_name' '100x100' %}"/>
+    <img src="{% url 'proxy_image' 'my_image_id' '100x100' 'scale' %}"/>
+
+Custom size and method
+
+.. code-block:: python
+
+    http://<hostname>/<path_to_source_file>/<size>/<method>/
+
 
 For easily using Django Rest Framework should do this
-
 
 local_settings.py
 
@@ -91,6 +97,11 @@ Override
             response = http.HttpResponse(self.image, content_type=self.content_type)
 
             return response
+
+TODO
+----
+
+* cache thumbnails
 
 Contribution
 ------------

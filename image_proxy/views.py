@@ -1,5 +1,9 @@
 
-from django import http
+import requests
+import mimetypes
+
+from urlparse import urljoin
+from django.http import HttpResponse
 from django.views import generic
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
@@ -7,12 +11,12 @@ from django.core.files.temp import NamedTemporaryFile
 from django.views.generic import View
 from django.conf import settings
 
-import requests
-import mimetypes
+from image_proxy import processors
+
+from PIL import Image
 
 
 class ThumbnailMixin(object):
-
 
     @property
     def base_url(self):
@@ -20,7 +24,7 @@ class ThumbnailMixin(object):
 
     @property
     def remote_path(self):
-        return self.base_url + self.kwargs["id"]
+        return urljoin(self.base_url, self.kwargs["id"])
 
     @property
     def image(self):
@@ -29,13 +33,13 @@ class ThumbnailMixin(object):
         img_temp = NamedTemporaryFile(delete=True)
         img_temp.write(r.content)
         img_temp.flush()
-        return File(img_temp)
+        return Image.open(img_temp.name)
 
     @property
     def content_type(self):
         mimetype = "image/jpeg"
         try:
-            mimetype =  mimetypes.guess_type(self.remote_path)[0]
+            mimetype = mimetypes.guess_type(self.remote_path)[0]
         except Exception, e:
             raise e
         return mimetype
@@ -47,17 +51,42 @@ class ThumbnailMixin(object):
 
         return context
 
+    @property
+    def final_size(self):
+        try:
+            size = self.kwargs["size"]
+        except KeyError:
+            size = "100x100" 
+        return size.split("x")
+
+    @property
+    def method(self):
+        try:
+            method = self.kwargs["method"]
+        except KeyError:
+            method = "crop" 
+        return method
+
+    def get_image(self):
+        im = processors.scale_and_crop(
+            self.image,
+            self.final_size,
+            self.method)
+        im = processors.colorspace(im)
+        im = processors.save_image(im)
+        return im
 
 class ThumbnailView(View, ThumbnailMixin):
 
     def get(self, request, *args, **kwargs):
 
-        response = http.HttpResponse(self.image, content_type=self.content_type)
+        response = HttpResponse(self.get_image(), content_type=self.content_type)
 
         return response
 
 
 class ThumbnailPreView(generic.TemplateView, ThumbnailMixin):
+
     """implementation without Horizon
     """
 
@@ -85,7 +114,7 @@ if HORIZON:
             pass
 
     class ThumbnailPreView(forms.ModalFormView, ThumbnailMixin):
-        
+
         template_name = "image_proxy/image_preview.html"
         form_class = FakeForm
 
