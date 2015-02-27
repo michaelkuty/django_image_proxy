@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Image" %}{% endblock %}
+
+{% block page_header %}
+{% include "horizon/common/_page_header.html" with title=_("Image") %}
+{% endblock %}
+
+{% block main %}
+{% include "image_proxy/_image_preview.html" %}
+{% endblock %}
