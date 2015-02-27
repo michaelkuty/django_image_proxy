@@ -7,6 +7,12 @@ Simple django app which provide images from remote hosts. Supports custom sizes 
 
 Aims to simplicity and compatibility with Openstack Horizon Dashboard, where is main place for usage.
 
+Supports
+--------
+
+* Django 1.7 and older
+* Openstack Horizon Dashboard Icehouse, Juno +
+
 Installation
 ------------
 
@@ -21,6 +27,15 @@ local_settings.py
     INSTALLED_APPS += ('image_proxy',)
 
     IMAGE_PROXY_URL = 'localhost:9753/images'
+
+    # optionaly set own dir for thumbnails
+    THUMBNAILS_DIR = "thumbnails"
+
+    # disable caching
+    IMAGE_PROXY_CACHE = False
+    
+    # change thumbnail format
+    THUMBNAILS_FORMAT = "PNG"
 
 urls.py
 

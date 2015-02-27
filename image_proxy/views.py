@@ -3,7 +3,7 @@ import requests
 import mimetypes
 
 from urlparse import urljoin
-from django.http import HttpResponse
+from django.http import StreamingHttpResponse
 from django.views import generic
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
@@ -23,45 +23,44 @@ class ThumbnailMixin(object):
         return getattr(settings, "IMAGE_PROXY_URL", getattr(self, "url", "localhost"))
 
     @property
-    def remote_path(self):
-        return urljoin(self.base_url, self.kwargs["id"])
+    def if_cache(self):
+        return getattr(settings, "IMAGE_PROXY_CACHE", True)
 
     @property
-    def name(self):
-        return self.kwargs["id"].split("/")[-1]
+    def thumbnail_path(self):
+        return getattr(settings, "THUMBNAILS_DIR", "thumbnails")
 
     @property
-    def full_name(self):
-        return "%s_%s" % (self.final_size_string, self.name)
-
-    @property
-    def storage(self):
-        return get_storage_class()()
+    def file_extension(self):
+        return getattr(settings, "THUMBNAILS_FORMAT", "PNG")
 
     @property
     def image(self):
         r = requests.get(self.remote_path)
 
-        if self.storage.exists(self.full_name):
+        if self.storage.exists(self.full_name) and self.if_cache:
             im = Image.open(self.storage.path(self.full_name))
-            im = processors.save_image(im)
         else:
             img_temp = NamedTemporaryFile(delete=True)
             img_temp.write(r.content)
             img_temp.flush()
             im = Image.open(img_temp.name)
+            
+            #im.convert("RGBA")
+            
             im = processors.scale_and_crop(
                 im,
                 self.final_size,
                 self.method)
             im = processors.colorspace(im)
-            im = processors.save_image(im)
             self.storage.save(self.full_name, im)
+            
+        im = processors.save_image(im, format=self.file_extension)
         return im
 
     @property
     def content_type(self):
-        mimetype = "image/jpeg"
+        mimetype = "image/png"
         try:
             mimetype = mimetypes.guess_type(self.remote_path)[0]
         except Exception, e:
@@ -84,7 +83,7 @@ class ThumbnailMixin(object):
         try:
             size = self.kwargs["size"]
         except KeyError:
-            size = "100x100" 
+            size = "100x100"
         return size.split("x")
 
     @property
@@ -92,15 +91,31 @@ class ThumbnailMixin(object):
         try:
             method = self.kwargs["method"]
         except KeyError:
-            method = "crop" 
+            method = "crop"
         return method
+
+    @property
+    def remote_path(self):
+        return urljoin(self.base_url, self.kwargs["id"])
+
+    @property
+    def name(self):
+        return self.kwargs["id"].split("/")[-1]
+
+    @property
+    def full_name(self):
+        return "%s/%s_%s" % (self.thumbnail_path, self.final_size_string, self.name)
+
+    @property
+    def storage(self):
+        return get_storage_class()()
 
 
 class ThumbnailView(View, ThumbnailMixin):
 
     def get(self, request, *args, **kwargs):
 
-        response = HttpResponse(self.image, content_type=self.content_type)
+        response = StreamingHttpResponse(self.image, content_type=self.content_type)
 
         return response
 

@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load thumbnail %}
 
 <div id="{% block modal_id %}{% endblock %}"
   class="{% block modal_class %}{% if hide %}modal{% else %}static_page{% endif %}{% endblock %}">
@@ -35,7 +36,7 @@
         </div>
         {% endif %}
         {% block modal-body %}
-		  <img src="{% url 'proxy_image' image %}" class="center-block" />
+		      <img src="{% thumbnail image '500x500' 'crop' %}" class="center-block" />
         {% endblock %}
         </div>
         <div class="modal-footer">
