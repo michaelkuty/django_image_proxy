@@ -40,22 +40,21 @@ class ThumbnailMixin(object):
 
         if self.storage.exists(self.full_name) and self.if_cache:
             im = Image.open(self.storage.path(self.full_name))
+            im = processors.save_image(im, format=self.file_extension)
         else:
             img_temp = NamedTemporaryFile(delete=True)
             img_temp.write(r.content)
             img_temp.flush()
             im = Image.open(img_temp.name)
             
-            #im.convert("RGBA")
-            
             im = processors.scale_and_crop(
                 im,
                 self.final_size,
                 self.method)
             im = processors.colorspace(im)
+            im = processors.save_image(im, format=self.file_extension)
             self.storage.save(self.full_name, im)
             
-        im = processors.save_image(im, format=self.file_extension)
         return im
 
     @property
