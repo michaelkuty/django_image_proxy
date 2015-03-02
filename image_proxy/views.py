@@ -46,11 +46,11 @@ class ThumbnailMixin(object):
             img_temp.write(r.content)
             img_temp.flush()
             im = Image.open(img_temp.name)
-            
-            im = processors.scale_and_crop(
-                im,
-                self.final_size,
-                self.method)
+            if not self.final_size is None:
+                im = processors.scale_and_crop(
+                    im,
+                    self.final_size,
+                    self.method)
             im = processors.colorspace(im)
             im = processors.save_image(im, format=self.file_extension)
             self.storage.save(self.full_name, im)
@@ -75,15 +75,17 @@ class ThumbnailMixin(object):
 
     @property
     def final_size_string(self):
-        return "x".join(self.final_size)
+        if self.final_size: return "x".join(self.final_size)
+        return str(self.final_size)
 
     @property
     def final_size(self):
         try:
             size = self.kwargs["size"]
+            size = size.split("x")
         except KeyError:
-            size = "100x100"
-        return size.split("x")
+            size = None
+        return size
 
     @property
     def method(self):
