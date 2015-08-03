@@ -27,7 +27,7 @@ local_settings.py
 
     INSTALLED_APPS += ('image_proxy',)
 
-    IMAGE_PROXY_URL = 'localhost:9753/images'
+    IMAGE_PROXY_URL = 'http://localhost:9753/images'
 
     # optionaly set own dir for thumbnails
     THUMBNAILS_DIR = "thumbnails"
@@ -55,12 +55,16 @@ Usage
     
     <img src="{% url 'proxy_image' '/media/anotherdjangoapp.png' %}"/>
     <img src="{% url 'proxy_image_preview' '/media/anotherdjangoapp.png' %}"/>
-    <img src="{% url 'proxy_image' 'my_image_name' '100x100' %}"/>
-    <img src="{% url 'proxy_image' 'my_image_id' '100x100' 'scale' %}"/>
+    <img src="{% url 'proxy_image_size' 'my_image_name' '100x100' %}"/>
+    <img src="{% url 'proxy_image_full' 'my_image_id' '100x100' 'scale' %}"/>
 
     or 
     {% load thumnail %}
+    {% thumbnail product.image %}
+    {% thumbnail product.image '400x400' %}
     {% thumbnail product.image '400x400' 'crop' %}
+
+If you have clash between your favourite thumbnail provider and proxy thumbanil tags use ``{% load thumbnail from proxy_thumbnail %}``.
 
 Custom size and method
 

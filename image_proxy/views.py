@@ -36,7 +36,11 @@ class ThumbnailMixin(object):
 
     @property
     def image(self):
-        r = requests.get(self.remote_path)
+        try:
+            r = requests.get(self.remote_path)
+        except Exception as e:
+            raise Exception('Exception %s raised '
+                            'during loading image %s' % (e, self.remote_path))
 
         if self.storage.exists(self.full_name) and self.if_cache:
             im = Image.open(self.storage.path(self.full_name))
@@ -54,7 +58,7 @@ class ThumbnailMixin(object):
             im = processors.colorspace(im)
             im = processors.save_image(im, format=self.file_extension)
             self.storage.save(self.full_name, im)
-            
+
         return im
 
     @property
@@ -75,7 +79,8 @@ class ThumbnailMixin(object):
 
     @property
     def final_size_string(self):
-        if self.final_size: return "x".join(self.final_size)
+        if self.final_size:
+            return "x".join(self.final_size)
         return str(self.final_size)
 
     @property
