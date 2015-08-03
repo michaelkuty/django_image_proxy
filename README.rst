@@ -3,15 +3,12 @@
 Django Image Proxy
 ==================
 
-Simple django app which provide images from remote hosts. Supports custom sizes and simple caching for less API calls.
-
-Aims to simplicity and compatibility with Openstack Horizon Dashboard, where is main place for usage.
+Small django toolkit for loading images from remote hosts. Supports custom sizes and simple caching for less API calls.
 
 Supports
 --------
 
-* Django 1.7 and older
-* Openstack Horizon Dashboard Icehouse, Juno +
+* Django 1.7 +
 * Pillow 2.3.0
 
 Installation
@@ -21,7 +18,10 @@ Installation
 
     pip install django_image_proxy
 
-local_settings.py
+Settings
+--------
+
+Specify your remote host.
 
 .. code-block:: python
 
@@ -29,7 +29,10 @@ local_settings.py
 
     IMAGE_PROXY_URL = 'http://localhost:9753/images'
 
-    # optionaly set own dir for thumbnails
+Optionaly you can set some common properties.
+
+.. code-block:: python
+
     THUMBNAILS_DIR = "thumbnails"
 
     # disable caching
@@ -51,6 +54,8 @@ urls.py
 Usage
 -----
 
+As url
+
 .. code-block:: html
     
     <img src="{% url 'proxy_image' '/media/anotherdjangoapp.png' %}"/>
@@ -58,7 +63,10 @@ Usage
     <img src="{% url 'proxy_image_size' 'my_image_name' '100x100' %}"/>
     <img src="{% url 'proxy_image_full' 'my_image_id' '100x100' 'scale' %}"/>
 
-    or 
+As templatetag
+
+.. code-block:: html
+
     {% load thumnail %}
     {% thumbnail product.image %}
     {% thumbnail product.image '400x400' %}
@@ -71,17 +79,6 @@ Custom size and method
 .. code-block:: python
 
     http://<hostname>/<path_to_source_file>/<size>/<method>/
-
-
-For easily using Django Rest Framework should do this
-
-local_settings.py
-
-.. code-block:: python
-
-    IMAGE_PROXY_URL = 'localhost:9753'
-
-note: this url is for another django located on the address
 
 .. code-block:: python
 
