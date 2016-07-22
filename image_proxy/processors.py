@@ -32,7 +32,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 try:
     from cStringIO import StringIO
 except ImportError:
-    from StringIO import StringIO
+    try:
+        from StringIO import StringIO
+    except ImportError:
+        from io import StringIO
 
 try:
     from PIL import Image, ImageChops, ImageFilter
@@ -42,6 +45,7 @@ except ImportError:
     import ImageFilter
 
 from django.core.files.base import ContentFile
+from django.utils import six
 
 import re
 import math
@@ -272,9 +276,9 @@ def scale_and_crop(im, size, crop=False, upscale=True, **kwargs):
                    min(source_x, int(target_x) + halfdiff_x),
                    min(source_y, int(target_y) + halfdiff_y)]
             # See if an edge cropping argument was provided.
-            edge_crop = (isinstance(crop, basestring) and
+            edge_crop = (isinstance(crop, six.string_types) and
                          re.match(r'(?:(-?)(\d+))?,(?:(-?)(\d+))?$', crop))
-            if edge_crop and filter(None, edge_crop.groups()):
+            if edge_crop and [_f for _f in edge_crop.groups() if _f]:
                 x_right, x_crop, y_bottom, y_crop = edge_crop.groups()
                 if x_crop:
                     offset = min(int(target_x) * int(x_crop) // 100, diff_x)

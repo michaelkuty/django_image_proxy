@@ -2,7 +2,6 @@
 import requests
 import mimetypes
 
-from urlparse import urljoin
 from django.http import StreamingHttpResponse
 from django.views import generic
 from django.core.files import File
@@ -14,6 +13,11 @@ from django.conf import settings
 from image_proxy import processors
 
 from PIL import Image
+
+try:
+    from urlparse import urljoin
+except ImportError:
+    from urllib.parse import urljoin
 
 
 class ThumbnailMixin(object):
@@ -66,7 +70,7 @@ class ThumbnailMixin(object):
         mimetype = "image/png"
         try:
             mimetype = mimetypes.guess_type(self.remote_path)[0]
-        except Exception, e:
+        except Exception as e:
             raise e
         return mimetype
 
@@ -121,7 +125,8 @@ class ThumbnailView(View, ThumbnailMixin):
 
     def get(self, request, *args, **kwargs):
 
-        response = StreamingHttpResponse(self.image, content_type=self.content_type)
+        response = StreamingHttpResponse(
+            self.image, content_type=self.content_type)
 
         return response
 
